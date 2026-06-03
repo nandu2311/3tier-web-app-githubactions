@@ -8,7 +8,7 @@ on:
 
 jobs:
   compile:
-    runs-on: self-hosted
+    runs-on: Agent-1
 
     steps:
       - name: Checkout Code
@@ -19,3 +19,29 @@ jobs:
         with:
           node-version: '24'
 
+      - name: Frontend Complation
+        run: |
+           cd client
+           find . -name "*.js" -exec node --check {} +
+
+      - name: Backend Complation
+        run: |
+          cd api
+          find . -name "*.js" -exec node --check {} +
+         
+  gitleaks-scan:
+    runs-on: Agent-1
+    needs: compile
+
+    steps:
+      - name: checkout code
+        uses: actions/checkout@v4
+
+      - name: gitleaks setup
+        uses: gitleaks/gitleaks-action@v2
+
+      - name: gitleaks scan
+        run: |
+          gitleaks detect --source ./client --exit-code 1
+          gitleaks detect --source ./api --exit-code 1
+          
